@@ -27,6 +27,7 @@
 #include <elf.h>
 #include <math.h>
 #include "ubpf.h"
+#include "michelfralloc.h"
 
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
@@ -34,6 +35,22 @@
 void ubpf_set_register_offset(int x);
 static void *readfile(const char *path, size_t maxlen, size_t *len);
 static void register_functions(struct ubpf_vm *vm);
+plugin_dynamic_memory_pool_t *mp;
+void* mem;
+size_t size;
+
+
+int init_memory() {
+    mp = calloc(1, sizeof(plugin_dynamic_memory_pool_t));
+    if(!mp) return -1;
+    mp->memory_max_size = size;
+    mp->memory_current_end = mp->memory_start = mem;
+    return 0;
+}
+
+void * my_malloc(size_t size) {
+    return michelfralloc(mp, size);
+}
 
 static void usage(const char *name)
 {
@@ -108,6 +125,12 @@ int main(int argc, char **argv)
 
     register_functions(vm);
 
+    size = 2000000000;
+
+    mem = malloc(size);
+
+    init_memory();
+
     /* 
      * The ELF magic corresponds to an RSH instruction with an offset,
      * which is invalid.
@@ -117,9 +140,9 @@ int main(int argc, char **argv)
     char *errmsg;
     int rv;
     if (elf) {
-        rv = ubpf_load_elf(vm, code, code_len, &errmsg, 10, 100);
+        rv = ubpf_load_elf(vm, code, code_len, &errmsg, mem, size);
     } else {
-        rv = ubpf_load(vm, code, code_len, &errmsg, 10, 100);
+        rv = ubpf_load(vm, code, code_len, &errmsg, mem, size);
     }
 
     free(code);
@@ -148,6 +171,8 @@ int main(int argc, char **argv)
     printf("0x%"PRIx64"\n", ret);
 
     ubpf_destroy(vm);
+
+    free(mem);
 
     return 0;
 }
@@ -265,5 +290,6 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 11, "help_printf_char", help_printf_char);
     ubpf_register(vm, 12, "help_printf_str", help_printf_str);
     ubpf_register(vm, 13, "help_printf_ptr", help_printf_ptr);
+    ubpf_register(vm, 20, "my_malloc", my_malloc);
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
