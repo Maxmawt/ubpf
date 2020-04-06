@@ -2,7 +2,7 @@
 #define SBRH_PUBLIC_H
 #include "sbrk.h"
 
-#include "ptmalloc3/malloc-private.h"
+#include "malloc-private.h"
 
 typedef struct {
     void *memory_start;

@@ -32,7 +32,7 @@ ubpf_jit_x86_64.o: ubpf_jit_x86_64.c ubpf_jit_x86_64.h
 libubpf.a: ubpf_vm.o ubpf_jit_x86_64.o ubpf_loader.o
 	ar rc $@ $^
 
-test: test.o libubpf.a
+test: test.o libubpf.a libmichelfralloc.a libptmalloc3.a
 
 clean:
 	rm -f test libubpf.a *.o
