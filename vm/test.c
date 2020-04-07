@@ -49,7 +49,10 @@ int init_memory() {
 }
 
 void * my_malloc(size_t size) {
-    return michelfralloc(mp, size);
+    printf("my_malloc called\n");
+    void* new_mem = michelfralloc(mp, size);
+    printf("new_mem: %p\n",new_mem);
+    return new_mem;
 }
 
 static void usage(const char *name)
@@ -125,11 +128,12 @@ int main(int argc, char **argv)
 
     register_functions(vm);
 
-    size = 2000000000;
+    size = 200000000;
 
     mem = malloc(size);
-
+    printf("mem malloced: %p\n", mem);
     init_memory();
+    printf("mem init, cxt: %p\n", mp);
 
     /* 
      * The ELF magic corresponds to an RSH instruction with an offset,
@@ -145,6 +149,8 @@ int main(int argc, char **argv)
         rv = ubpf_load(vm, code, code_len, &errmsg, mem, size);
     }
 
+    printf("ubpf loaded\n");
+
     free(code);
 
     if (rv < 0) {
@@ -155,6 +161,8 @@ int main(int argc, char **argv)
     }
 
     uint64_t ret;
+
+    printf("before ubpf_exec\n");
 
     if (jit) {
         ubpf_jit_fn fn = ubpf_compile(vm, &errmsg);
@@ -167,6 +175,8 @@ int main(int argc, char **argv)
     } else {
         ret = ubpf_exec(vm, mem, mem_len);
     }
+
+    printf("after ubpf_exec\n");
 
     printf("0x%"PRIx64"\n", ret);
 

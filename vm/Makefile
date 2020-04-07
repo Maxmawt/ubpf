@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+CC = gcc
+
 CFLAGS := -Wall -Iinc -O2 -g # -Werror
-LDLIBS := -lm
+LDLIBS := -Iinc  -lm
 
 ifeq ($(COVERAGE),1)
 CFLAGS += -fprofile-arcs -ftest-coverage
