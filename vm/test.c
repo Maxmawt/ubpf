@@ -38,22 +38,8 @@ static void register_functions(struct ubpf_vm *vm);
 plugin_dynamic_memory_pool_t *mp;
 void* mem;
 size_t size;
+int init_memory(void* memory);
 
-
-int init_memory() {
-    mp = calloc(1, sizeof(plugin_dynamic_memory_pool_t));
-    if(!mp) return -1;
-    mp->memory_max_size = size;
-    mp->memory_current_end = mp->memory_start = mem;
-    return 0;
-}
-
-void * my_malloc(size_t size) {
-    printf("my_malloc called\n");
-    void* new_mem = michelfralloc(mp, size);
-    printf("new_mem: %p\n",new_mem);
-    return new_mem;
-}
 
 static void usage(const char *name)
 {
@@ -132,7 +118,7 @@ int main(int argc, char **argv)
 
     mem = malloc(size);
     printf("mem malloced: %p\n", mem);
-    init_memory();
+    init_memory(mem);
     printf("mem init, cxt: %p\n", mp);
 
     /* 
@@ -281,6 +267,21 @@ void help_printf_ptr(void *p) {
 
 void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr) {
     printf("Out of bound access with val 0x%lx, start of mem is 0x%lx, top of stack is 0x%lx\n", val, mem_ptr, stack_ptr);
+}
+
+int init_memory(void* memory) {
+    mp = calloc(1, sizeof(plugin_dynamic_memory_pool_t));
+    if(!mp) return -1;
+    mp->memory_max_size = size;
+    mp->memory_current_end = mp->memory_start = memory;
+    return 0;
+}
+
+void * my_malloc(size_t size) {
+    printf("my_malloc called\n");
+    void* new_mem = michelfralloc(mp, size);
+    printf("new_mem: %p\n",new_mem);
+    return new_mem;
 }
 
 static void
