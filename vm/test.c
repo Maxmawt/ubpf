@@ -31,6 +31,7 @@
 
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
+#include <sys/time.h>
 
 void ubpf_set_register_offset(int x);
 static void *readfile(const char *path, size_t maxlen, size_t *len);
@@ -120,6 +121,7 @@ int main(int argc, char **argv)
     printf("mem malloced: %p\n", mem);
     init_memory(mem);
     printf("mem init, cxt: %p\n", mp);
+    srandom(2);
 
     /* 
      * The ELF magic corresponds to an RSH instruction with an offset,
@@ -284,6 +286,20 @@ void * my_malloc(size_t size) {
     return new_mem;
 }
 
+void print_result(char* str, int time) {
+    printf("### %s run: %d ms\n", str, time);
+}
+
+int gettime(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+int getrandom(){
+    return random();
+}
+
 static void
 register_functions(struct ubpf_vm *vm)
 {
@@ -302,5 +318,8 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 12, "help_printf_str", help_printf_str);
     ubpf_register(vm, 13, "help_printf_ptr", help_printf_ptr);
     ubpf_register(vm, 20, "my_malloc", my_malloc);
+    ubpf_register(vm, 21, "print_result", print_result);
+    ubpf_register(vm, 22, "gettime", gettime);
+    ubpf_register(vm, 23, "getrandom", getrandom);
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
