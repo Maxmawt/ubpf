@@ -24,7 +24,7 @@
 #include <sys/mman.h>
 #include "ubpf_int.h"
 
-#define MAX_EXT_FUNCS 128
+#define MAX_EXT_FUNCS 256
 #define OOB_CALL 0x3f
 #define MAX_LOAD_STORE 2048
 #define ADDED_LOAD_STORE_INSTS 20
@@ -778,7 +778,7 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
 
         case EBPF_OP_CALL:
             if (inst.imm < 0 || inst.imm >= MAX_EXT_FUNCS) {
-                *errmsg = ubpf_error("invalid call immediate at PC %d", i);
+                *errmsg = ubpf_error("invalid call immediate %d at PC %d", inst.imm, i);
                 return false;
             }
             if (!vm->ext_funcs[inst.imm]) {
