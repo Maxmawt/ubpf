@@ -300,6 +300,10 @@ int getrandom(){
     return random();
 }
 
+void memcpy(void* buf1, void* buf2, size_t len){
+    memcpy(buf1, buf2, len);
+}
+
 static void
 register_functions(struct ubpf_vm *vm)
 {
@@ -321,5 +325,6 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 21, "print_result", print_result);
     ubpf_register(vm, 22, "gettime", gettime);
     ubpf_register(vm, 23, "getrandom", getrandom);
+    ubpf_register(vm, 24, "memcpy", memcpy);
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
