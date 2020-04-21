@@ -157,9 +157,9 @@ int main(int argc, char **argv)
             free(errmsg);
             return 1;
         }
-        ret = fn(mem, mem_len);
+        ret = fn(mem, size);
     } else {
-        ret = ubpf_exec(vm, mem, mem_len);
+        ret = ubpf_exec(vm, mem, size);
     }
 
     printf("after ubpf_exec\n");
