@@ -26,6 +26,9 @@
 #include <assert.h>
 #include "ubpf_int.h"
 #include "ubpf_jit_x86_64.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 /* Special values for target_pc in struct jump */
 #define TARGET_PC_EXIT -1
@@ -587,6 +590,21 @@ ubpf_compile(struct ubpf_vm *vm, char **errmsg)
     if (mprotect(jitted, jitted_size, PROT_READ | PROT_EXEC) < 0) {
         *errmsg = ubpf_error("internal uBPF error: mprotect failed: %s\n", strerror(errno));
         goto out;
+    }
+
+    int fd = open("ebpf_jit", O_WRONLY|O_CREAT|O_TRUNC, 0666);
+    if (fd < 0) {
+        printf("failed to open jitdump file");
+        return NULL;
+    }
+    int n = write(fd, jitted, jitted_size);
+    if (n <= 0) {
+           printf("failed to write jitdump file");
+        return NULL;
+    }
+    if (close(fd)) {
+        printf("failed to close jitdump file");
+        return NULL;
     }
 
     vm->jitted = jitted;

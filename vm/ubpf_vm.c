@@ -159,13 +159,13 @@ const char *ubpf_get_error_msg(const struct ubpf_vm *vm) {
 }
 
 uint64_t
-ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len)
+ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len, int* count)
 {
-    return ubpf_exec_with_arg(vm, mem, mem, mem_len);
+    return ubpf_exec_with_arg(vm, mem, mem, mem_len, count);
 }
 
 uint64_t
-ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len)
+ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len, int* count)
 {
     uint16_t pc = 0;
     const struct ebpf_inst *insts = vm->insts;
@@ -183,6 +183,7 @@ ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len)
     while (1) {
         const uint16_t cur_pc = pc;
         struct ebpf_inst inst = insts[pc++];
+        count[inst.opcode]++;
 
         switch (inst.opcode) {
         case EBPF_OP_ADD_IMM:

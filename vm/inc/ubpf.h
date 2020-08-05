@@ -71,13 +71,13 @@ int ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **er
  */
 int ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_len, char **errmsg, uint64_t memory_ptr, uint32_t memory_size);
 
-uint64_t ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len);
+uint64_t ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len, int* count);
 
 /*
  * Provide arg to R1, but ensure store and load access remains in the range
  * [mem, mem + mem_len[.
  */
-uint64_t ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len);
+uint64_t ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len, int* count);
 
 /*
  * Return the cause of the error if the VM crashed, or NULL otherwise

@@ -149,8 +149,16 @@ int main(int argc, char **argv)
     }
 
     uint64_t ret;
+    int* count;
 
     printf("before ubpf_exec\n");
+    if(!jit) {
+        count = (int*) calloc(256, sizeof(int));
+        if (count == NULL) {
+             printf("failed to alloc instruction counter\n");
+             return 1;
+        }
+    }
 
     if (jit) {
         ubpf_jit_fn fn = ubpf_compile(vm, &errmsg);
@@ -161,7 +169,14 @@ int main(int argc, char **argv)
         }
         ret = fn(mem, size);
     } else {
-        ret = ubpf_exec(vm, mem, size);
+        ret = ubpf_exec(vm, mem, size, count);
+    }
+
+    if (!jit) {
+        for (int i = 0; i < 256; i++) {
+            printf("!!! %d\n", count[i]);
+        }
+        free(count);
     }
 
     printf("after ubpf_exec\n");
@@ -280,14 +295,22 @@ int init_memory(void* memory) {
 }
 
 void * my_malloc(size_t size) {
-    printf("my_malloc called\n");
     void* new_mem = michelfralloc(mp, size);
-    printf("new_mem: %p\n",new_mem);
     return new_mem;
 }
 
 void print_result(char* str, int time) {
     printf("### %s run: %d ms\n", str, time);
+}
+
+void * my_memset(void *b, int c, size_t len){
+    memset(b,c,len);
+}
+
+int getusec(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_usec;
 }
 
 int gettime(){
@@ -325,6 +348,11 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 21, "print_result", print_result);
     ubpf_register(vm, 22, "gettime", gettime);
     ubpf_register(vm, 23, "getrandom", getrandom);
-    ubpf_register(vm, 24, "memcpy", my_memcpy);
+    ubpf_register(vm, 24, "my_memcpy", my_memcpy);
+    ubpf_register(vm, 25, "strlen", strlen);
+    ubpf_register(vm, 26, "strcat", strcat);
+    ubpf_register(vm, 27, "strcpy", strcpy);
+    ubpf_register(vm, 28, "my_memset", my_memset);
+    ubpf_register(vm, 29, "getusec", getusec);
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
